@@ -16,6 +16,7 @@ from ..error import ZFSReplicateError
 @click.command()  # type: ignore[misc]
 @click.option("--verbose", "-v", is_flag=True, help="Print additional output.")  # type: ignore[misc]
 @click.option(  # type: ignore[misc]
+    "-n",
     "--dry-run",
     is_flag=True,
     help="Generate replication tasks but do not execute them.",
