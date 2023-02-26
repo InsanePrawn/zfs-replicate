@@ -9,6 +9,7 @@ from ..filesystem import FileSystem
 from ..filesystem import filesystem as filesystem_t
 from ..ssh import Cipher
 from .click import EnumChoice
+from ..error import ZFSReplicateError
 
 
 @click.command()  # type: ignore[misc]
@@ -91,16 +92,25 @@ def main(  # pylint: disable=R0914,R0913
         click.echo()
 
     r_filesystem = filesystem.remote_dataset(remote_fs, local_fs)
-    filesystem.create(r_filesystem, ssh_command=ssh_command)
+
+    if not dry_run:
+        filesystem.create(r_filesystem, ssh_command=ssh_command)
 
     if verbose:
         click.echo(f"checking filesystem {host}/{r_filesystem.name}")
 
-    r_snaps = snapshot.list(r_filesystem, recursive=recursive, ssh_command=ssh_command)
-
-    if verbose:
-        click.echo(f"found {len(r_snaps)} snapshots on {r_filesystem.name}")
-        click.echo()
+    try:
+        r_snaps = snapshot.list(r_filesystem, recursive=recursive, ssh_command=ssh_command)
+        if verbose:
+            click.echo(f"found {len(r_snaps)} snapshots on {r_filesystem.name}")
+            click.echo()
+    except ZFSReplicateError:
+        if not dry_run:
+            raise
+        r_snaps = []
+        if verbose:
+            click.echo(f"Dataset {r_filesystem.name} doesn't exist yet")
+            click.echo()
 
     filesystem_l_snaps = {
         filesystem: list(l_snaps)
