@@ -1,10 +1,12 @@
 """SSH Command Generator."""
+from typing import Optional
+
 from .cipher import Cipher
 
 
-def command(cipher: Cipher, user: str, key_file: str, port: int, host: str) -> str:
+def command(cipher: Cipher, user: str, key_file: Optional[str], port: int, host: str, reset_env: bool = False) -> str:
     """Generate ssh commandline invocation."""
-    ssh = "/usr/bin/env - ssh"
+    ssh = "/usr/bin/env - ssh" if reset_env else "ssh"
 
     options = []
 
@@ -15,9 +17,10 @@ def command(cipher: Cipher, user: str, key_file: str, port: int, host: str) -> s
     elif cipher == Cipher.DISABLED:
         options.extend(["-o noneenabled=yes", "-o noneswitch=yes"])
 
+    if key_file:
+        options.append(f"-i {key_file}")
     options.extend(
         [
-            f"-i {key_file}",
             "-o BatchMode=yes",
             "-o StrictHostKeyChecking=yes",
             "-o ConnectTimeout=7",

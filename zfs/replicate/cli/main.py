@@ -1,7 +1,8 @@
 """Main function zfs-replicate."""
+import click
 import itertools
 
-import click
+from typing import Optional
 
 from .. import filesystem, snapshot, ssh, task
 from ..compress import Compression
@@ -46,7 +47,7 @@ from ..error import ZFSReplicateError
     "-i",
     "--identity-file",
     type=click.Path(exists=True, dir_okay=False),
-    required=True,
+    required=False,
     help="SSH identity file to use.",
 )
 @click.option(  # type: ignore[misc]
@@ -61,6 +62,13 @@ from ..error import ZFSReplicateError
     default=Compression.LZ4,
     help="One of: off (no compression), lz4 (fastest), pigz (all rounder), or plzip (best compression).",
 )
+@click.option(
+    "--reset-ssh-env",
+    type=bool,
+    default=False,
+    is_flag=True,
+    help="Reset env when calling SSH to avoid ssh-agent interference",
+)
 @click.argument("host", required=True)  # type: ignore[misc]
 @click.argument("remote_fs", type=filesystem_t, required=True, metavar="REMOTE_FS")  # type: ignore[misc]
 @click.argument("local_fs", type=filesystem_t, required=True, metavar="LOCAL_FS")  # type: ignore[misc]
@@ -71,15 +79,16 @@ def main(  # pylint: disable=R0914,R0913
     recursive: bool,
     port: int,
     user: str,
-    identity_file: str,
+    identity_file: Optional[str],
     cipher: Cipher,
     compression: Compression,
+    reset_ssh_env: bool,
     host: str,
     remote_fs: FileSystem,
     local_fs: FileSystem,
 ) -> None:
     """Replicate LOCAL_FS to REMOTE_FS on HOST."""
-    ssh_command = ssh.command(cipher, user, identity_file, port, host)
+    ssh_command = ssh.command(cipher, user, identity_file, port, host, reset_env=reset_ssh_env)
 
     if verbose:
         click.echo(f"checking filesystem {local_fs.name}")
