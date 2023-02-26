@@ -9,7 +9,7 @@ from .list import list  # pylint: disable=W0622
 from .type import FileSystem
 
 
-def create(filesystem: FileSystem, ssh_command: str) -> None:
+def create(filesystem: FileSystem, ssh_command: str, verbose: bool = False) -> None:
     """Create a Remote FileSystem."""
     if filesystem.name is None:
         raise ZFSReplicateError(
@@ -18,7 +18,7 @@ def create(filesystem: FileSystem, ssh_command: str) -> None:
 
     top_level = type.filesystem(name=filesystem.dataset, readonly=filesystem.readonly)
 
-    filesystems = [x.name for x in list(top_level, ssh_command=ssh_command)]
+    filesystems = [x.name for x in list(top_level, ssh_command=ssh_command, verbose=verbose)]
 
     for head in inits(filesystem.name.split("/"))[1:]:
         path = os.path.join(*head)
@@ -27,6 +27,9 @@ def create(filesystem: FileSystem, ssh_command: str) -> None:
             continue
 
         command = ssh_command + " " + _create(path)
+
+        if verbose:
+            print(f"Running cmd: {command!r}")
 
         proc = subprocess.open(command)
 

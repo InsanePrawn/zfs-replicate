@@ -11,12 +11,15 @@ def list(  # pylint: disable=W0622
     filesystem: FileSystem,  # pylint: disable=W0621
     recursive: bool,
     ssh_command: Optional[str] = None,
+    verbose: bool = False,
 ) -> List[Snapshot]:
     """List ZFS snapshots."""
     command = _list(filesystem, recursive)
     if ssh_command is not None:
         command = ssh_command + " " + command
 
+    if verbose:
+        print(f"Running cmd: {command!r}")
     proc = subprocess.open(command)
 
     output, error = proc.communicate()

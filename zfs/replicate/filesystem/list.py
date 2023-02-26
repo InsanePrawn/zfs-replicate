@@ -11,12 +11,15 @@ RE_WHITESPACE = re.compile(b"[ \t]+")
 
 
 def list(  # pylint: disable=W0622
-    filesystem: FileSystem, ssh_command: str
+    filesystem: FileSystem, ssh_command: str, verbose: bool = False
 ) -> List[FileSystem]:
     """List ZFS FileSystem."""
     command = _list(filesystem)
     if ssh_command is not None:
         command = ssh_command + " " + command
+
+    if verbose:
+        print(f"Running cmd: {command!r}")
 
     proc = subprocess.open(command)
 

@@ -93,7 +93,7 @@ def main(  # pylint: disable=R0914,R0913
     if verbose:
         click.echo(f"checking filesystem {local_fs.name}")
 
-    l_snaps = snapshot.list(local_fs, recursive=recursive)
+    l_snaps = snapshot.list(local_fs, recursive=recursive, verbose=verbose)
     # Improvement: exclusions from snapshots to replicate.
 
     if verbose:
@@ -103,13 +103,13 @@ def main(  # pylint: disable=R0914,R0913
     r_filesystem = filesystem.remote_dataset(remote_fs, local_fs)
 
     if not dry_run:
-        filesystem.create(r_filesystem, ssh_command=ssh_command)
+        filesystem.create(r_filesystem, ssh_command=ssh_command, verbose=verbose)
 
     if verbose:
         click.echo(f"checking filesystem {host}/{r_filesystem.name}")
 
     try:
-        r_snaps = snapshot.list(r_filesystem, recursive=recursive, ssh_command=ssh_command)
+        r_snaps = snapshot.list(r_filesystem, recursive=recursive, ssh_command=ssh_command, verbose=verbose)
         if verbose:
             click.echo(f"found {len(r_snaps)} snapshots on {r_filesystem.name}")
             click.echo()
